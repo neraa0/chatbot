@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const systemPrompt = "You are an AI powered customer support assistant";
+const systemPrompt = "You are an AI powered customer support assistant. Be friendly";
 
 export async function POST(req) {
     const openai = new OpenAI();

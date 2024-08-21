@@ -1,60 +1,90 @@
-"use client"
+"use client";
 import { Box, Stack, TextField, Button } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
-  const [messages, setMessages] = useState([{
-    role: "assistant",
-    content: "Hi, I'm the Headstarter Support Agent, how can I assist you today?"
-  }]);
-
+  const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
 
-  // const handleSendMessage = () => {
-  //   if (message.trim()) {
-  //     setMessages([...messages, { role: "user", content: message }]);
-  //     setMessage("");
-  //   }
-  // };
+  // Function to generate responses based on user input
+  const getResponse = (userMessage) => {
+    const lowerCaseMessage = userMessage.toLowerCase();
 
-  const sendMessage = async() => {
-    setMessage("")
-    setMessages((messages) => [
+    if (lowerCaseMessage.includes("hello") || lowerCaseMessage.includes("hi")) {
+      return "Hello! How can I help you today?";
+    }
+    if (lowerCaseMessage.includes("how are you")) {
+      return "I'm just a program, so I don't have feelings, but I'm here to help!";
+    }
+    if (lowerCaseMessage.includes("what is your name")) {
+      return "I'm the Headstarter Support Agent!";
+    }
+    if (lowerCaseMessage.includes("help")) {
+      return "Sure, I'm here to help. What do you need assistance with?";
+    }
+    if (lowerCaseMessage.includes("thank you") || lowerCaseMessage.includes("thanks")) {
+      return "You're welcome! If you have any more questions, feel free to ask.";
+    }
+    if (lowerCaseMessage.includes("hours") || lowerCaseMessage.includes("open")) {
+      return "Our support team is available from 9 AM to 5 PM, Monday through Friday.";
+    }
+    if (lowerCaseMessage.includes("account") || lowerCaseMessage.includes("login")) {
+      return "You can manage your account settings by logging into your dashboard and selecting 'Account Settings'.";
+    }
+    if (lowerCaseMessage.includes("forgot password")) {
+      return "If you've forgotten your password, click on 'Forgot Password' on the login page, and we'll send you a reset link.";
+    }
+    if (lowerCaseMessage.includes("contact") || lowerCaseMessage.includes("support")) {
+      return "You can contact us at support@headstarter.com or call us at (123) 456-7890.";
+    }
+    if (lowerCaseMessage.includes("pricing") || lowerCaseMessage.includes("cost")) {
+      return "Our pricing plans are available on our website under the 'Pricing' section. Feel free to check them out!";
+    }
+    if (lowerCaseMessage.includes("what day is it")) {
+      const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      return `Today is ${today}.`;
+    }
+
+    return "I'm not sure how to respond to that. Could you please clarify or ask something else?";
+  };
+
+  // Function to handle sending messages
+  const sendMessage = () => {
+    if (!message.trim()) return; // Check if the message is not empty
+
+    const newMessages = [
       ...messages,
-      {role: "user", content: message},
-      {role: "assistant", content: ""},
-    ])
-    const response = fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify([...messages, {role: "user", content: message}])
-    }).then(async (res) => {
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
+      { role: "user", content: message },
+      { role: "assistant", content: "" }
+    ];
 
-      let result = ""
-      return reader.read().then(function processText({done, value}){
-        if (done){
-          return result
-        }
-        const text = decoder.decode(value || new Int8Array(), {stream:true})
-        setMessages((messages) => {
-          let lastMessage = messages[messages.length - 1]
-          let otherMessages = messages.slice(0, messages.length - 1)
-          return [
-            ...otherMessages,
-            {
-              ...lastMessage,
-              content: lastMessage.content + text,
-            },
-          ]
-        })
-        return reader.read().then(processText)
-      })
-    })
-  }
+    setMessages(newMessages); // Update state with the new message
+    setMessage(""); // Clear the input field
+
+    // Simulate a delay before responding
+    setTimeout(() => {
+      const response = getResponse(message);
+      setMessages((prevMessages) => {
+        let lastMessage = prevMessages[prevMessages.length - 1];
+        return [
+          ...prevMessages.slice(0, prevMessages.length - 1),
+          {
+            ...lastMessage,
+            content: response,
+          },
+        ];
+      });
+    }, 1000); // 1 second delay to simulate thinking time
+  };
+
+  // Effect to send a greeting message when the component mounts
+  useEffect(() => {
+    const initialGreeting = {
+      role: "assistant",
+      content: "Hi, I'm the Headstarter Support Agent. How can I assist you today?"
+    };
+    setMessages([initialGreeting]);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
     <Box
